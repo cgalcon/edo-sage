@@ -1,0 +1,223 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Sistemas de ecuaciones diferenciales</title>
+    <script src="https://sagecell.sagemath.org/static/jquery.min.js"></script>
+    <script src="https://sagecell.sagemath.org/embedded_sagecell.js"></script>
+    <script>
+$(function () {
+     // Make the div with id 'mycell' a Sage cell
+    sagecell.makeSagecell({inputLocation:  '#mycell',
+                           template:       sagecell.templates.minimal,
+                           linked: true,
+                           evalButtonText: 'Inicializa'});
+    // Make *any* div with class 'compute' a Sage cell
+    sagecell.makeSagecell({inputLocation: 'div.compute',
+    			   template: sagecell.templates.minimal,
+    			   linked: true,
+                           evalButtonText: 'Ejecutar'});                         
+});
+    </script>
+    
+</head>
+<!--   <body style="width: 800px;"> -->
+
+  <h1>Sistemas de ecuaciones diferenciales: importar modelo</h1>
+
+<p>Resolución numérica de sistemas de ecuaciones diferenciales ordinarias de primer orden con valores iniciales.
+</p>
+
+<p>Pulsa <span style="background-color:#d3d3d3;">&nbsp;Ejecutar&nbsp;</span> e indica los nombres de las variables dependientes y de los parámetros mediante una expresión como por ejemplo <tt>[['x1','x2'], ['a','b','c']]</tt>.
+Al acabar haz clic con el ratón sobre el botón 
+<span style="background-color:#d3d3d3;">&nbsp;Update&nbsp;</span>.
+</p>
+
+<div class="compute">
+<script type="text/x-sage">
+
+@interact
+def _(t1 = text_control('variables y parametros:'),
+      varypar = input_box(label='', width=100, default=[]),
+      auto_update=False) :
+    global nombresvar
+    global nombrespar
+    if len(varypar) > 0:
+        nombresvar = varypar[0]
+        nombrespar = varypar[1]
+        var('t')
+        var(nombresvar)
+        var(nombrespar)
+        print('Las variables se llaman: '+str(nombresvar) )
+        print('y los parámetros se llaman: '+str(nombrespar) )
+
+</script>
+</div>
+
+<p>Introduce ahora el modelo como una lista de la forma <br>
+<tt>{'numvar': 2, 'nombresvar': ['x1', 'x2'], 'derivadas': [a*x1, b*x2 - c*x1], ... }</tt><br>
+Al acabar haz clic con el ratón sobre el botón <span style="background-color:#d3d3d3;">&nbsp;Update&nbsp;</span>.
+</p>
+
+
+<div class="compute">
+<script type="text/x-sage">
+
+@interact
+def _(t1 = text_control('modelo:'),
+      m = input_box(label='', width=100, default={}), 
+      auto_update=False) :
+    global modelo
+    modelo = m
+    clavesord = ['numvar', 'nombresvar', 'derivadas', 'valoresiniciales', 
+        'numparam', 'nombrespar', 'valparam', 'cotasparam', 'tmin', 'tmax']
+    for c in clavesord:
+        if c in modelo.keys(): print(c,':', modelo[c])
+
+</script>
+</div>
+
+<p>Vuelve a integrar el sistema pulsando el siguiente botón <span style="background-color:#d3d3d3;">&nbsp;Ejecutar&nbsp;</span>.
+</p>
+
+<div class="compute">
+<script type="text/x-sage">
+
+nvar = modelo['numvar']
+npar = modelo['numparam']
+cotaspar = modelo['cotasparam']
+lstderdef = modelo['derivadas']
+
+nombresparext = nombrespar + [' ', ' ', ' ', ' ', ' ']
+cotasparext = cotaspar + [[0,0], [0,0], [0,0], [0,0]]
+vp = modelo['valparam']+[0,0,0,0,0]
+[aa0,bb0,cc0,dd0,ee0] = vp[0:5]
+
+if nvar == 2:
+    texto1 = "$dx_i/dt = f_i(t,x_1,x_2)$"+" ($i=1,2$)"
+if nvar > 2:
+    texto1 = "$dx_i/dt = f_i(t,x_1,...,x_"+str(nvar)+"),$ "+" ($i=1,...,"+str(nvar)+"$)"
+
+@interact(layout={'top': [['t1','t2'],['der','valini'],['tmin','tmax'],['aa'],['bb'],['cc'],['dd'],['ee']],
+    'bottom': [['pf','pfx','pfy'],['auto_update','s']]} )
+def _(t1 = text_control(texto1),
+      t2 = text_control('valores iniciales'),
+      der   = input_grid(modelo['numvar'],1, default=modelo['derivadas'], label="$f_i$", width=30,
+           to_value=lambda x: vector(flatten(x))),
+      valini= input_grid(nvar,1, default=modelo['valoresiniciales'], label="$x_i(t_{inicial})$", width=5,
+           to_value=lambda x: vector(flatten(x))),
+      aa = slider(cotasparext[0][0], cotasparext[0][1], step_size=.01, default=aa0, label=nombresparext[0]),
+      bb = slider(cotasparext[1][0], cotasparext[1][1], step_size=.01, default=bb0, label=nombresparext[1]),
+      cc = slider(cotasparext[2][0], cotasparext[2][1], step_size=.01, default=cc0, label=nombresparext[2]),
+      dd = slider(cotasparext[3][0], cotasparext[3][1], step_size=.01, default=dd0, label=nombresparext[3]),
+      ee = slider(cotasparext[4][0], cotasparext[4][1], step_size=.01, default=ee0, label=nombresparext[4]),         
+      tmin  = input_box( modelo['tmin'], '$t$ inicial', width=5),
+      tmax  = input_box( modelo['tmax'], '$t$ final', width=5),
+      s = selector([3 .. 10], default=5, label='tamaño gráfica'),
+      pf = checkbox(default=False, label='Dibujar plano fase'),
+      pfx = selector([1 .. nvar], default=1, label='variable x'),
+      pfy = selector([1 .. nvar], default=2, label='variable y'),
+      auto_update=False) :
+
+    numpuntos = 15*(tmax - tmin)
+    
+    #expresamos el sistema en forma matemática
+    latexstring = r"\left\{ \begin{array}{l} "
+    for i in range(nvar):
+        latexstring = latexstring + r"\frac{d}{dt}" + nombresvar[i] + "=" + latex(der[i]) + r"\\"
+    for i in range(nvar):
+        latexstring = latexstring + nombresvar[i] + "(" + str(tmin) + ")=" + str(valini[i]) + r";\; "    
+    latexstring = latexstring + r"\end{array} \right."   
+    pretty_print(LatexExpr(latexstring))
+    
+    #ponemos el modelo como un diccionario para que se pueda exportar y lo escribimos 
+    valpar =  [round(i,4) for i in [aa,bb,cc,dd,ee][0:npar]]     
+    
+    global modelodicc
+    modelodicc = {
+        'numvar':nvar, 'nombresvar':nombresvar, 'derivadas':list(der), 'valoresiniciales':list(valini),
+        'numparam':npar, 'nombrespar':nombrespar, 'valparam':valpar, 'cotasparam':cotaspar,
+        'tmin':tmin, 'tmax':tmax}
+    clavesord = ['numvar', 'nombresvar', 'derivadas', 'valoresiniciales', 
+        'numparam', 'nombrespar', 'valparam', 'cotasparam', 'tmin'] #, 'tmax']
+    #print('variables y parámetros:')
+    #print(str([nombresvar, nombrespar]))
+    #print('modelo:\n{')
+    #for c in clavesord:
+    #    print("'"+str(c)+"' :", modelodicc[c], ",")      	
+    #print("'tmax': ", modelodicc['tmax'])
+    #print('}')
+    
+
+    D = {}
+    for i in range(npar): D[var(nombrespar[i])] = valpar[i]
+    def f(tt,y):
+        D[t]=tt
+        for i in range(nvar): D[var(nombresvar[i])] = y[i]
+        return([i.subs(D) for i in der])
+    
+    #resolucion del sistema de EDO
+    T = ode_solver()
+    T.function = f
+    T.ode_solve(y_0 = valini, t_span=[tmin,tmax], num_points=numpuntos)
+    
+    #gráfica de las soluciones
+    colores = rainbow(nvar)
+    sol = T.interpolate_solution(i=0)
+    graf = line(sol, color=colores[0], thickness=3, legend_label=nombresvar[0])
+    for j in range(1,nvar):
+        sol = T.interpolate_solution(i=j)
+        graf= graf + line(sol, color=colores[j], thickness=3, legend_label=nombresvar[j])
+    show(graf, figsize=s, axes_labels=['$t$',''])
+  
+    #gráfica del plano de fase
+    if pf:
+        puntossol = [k[1] for k in T.solution]
+        puntosfase= [[k[pfx-1],k[pfy-1]] for k in puntossol]
+        fase = points(puntosfase[1:-1])
+        fase = fase + points(puntosfase[0], color='green', size=30)  #primer punto en verde
+        fase = fase + points(puntosfase[-1], color='red', size=30)   #último punto en rojo
+        show(fase+line(puntosfase), figsize=s, axes_labels=[nombresvar[pfx-1],nombresvar[pfy-1]])
+
+</script>
+</div>
+
+<p>Pulsando el botón <span style="background-color:#d3d3d3;">&nbsp;Ejecutar&nbsp;</span> de abajo optendrás un resumen del modelo que puedes copiar y guardar y volver a ejecutar posteriormente.
+</p>
+
+<div class="compute">
+<script type="text/x-sage">
+
+print('variables y parámetros:')
+print(str([nombresvar, nombrespar]))
+clavesord = ['numvar', 'nombresvar', 'derivadas', 'valoresiniciales', 
+    'numparam', 'nombrespar', 'valparam', 'cotasparam', 'tmin'] #, 'tmax']
+print('modelo:\n{')
+for c in clavesord:
+    print("'"+str(c)+"' :", modelodicc[c], ",")      	
+print("'tmax': ", modelodicc['tmax'])
+print('}')
+
+</script>
+</div>
+
+<p>&nbsp;</p>
+
+
+<p><font color="gray" size="2" face="arial">
+Sage is free, open-source math - learn more and install at <a href="http://sagemath.org" target="_blank">sagemath.org</a>,
+and try it online at <a href="http://cloud.sagemath.com" target="_blank">cloud.sagemath.com</a><br />
+<hr />
+Grado en Biología. Universidad de La Laguna, Spain.<br />
+&copy; Carlos González-Alcón 2017-2020 &#8212; v12 January 9, 2020.<br />
+
+<!-- © Carlos González-Alcón 2017 - this work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank">Creative Commons Attribution-ShareAlike 3.0 License</a><br /> -->
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Licencia de Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />Este obra está bajo una <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">licencia de Creative Commons Reconocimiento-CompartirIgual 4.0 Internacional</a>.
+<font />
+<p />
+
+
+
+</body>
+</html>

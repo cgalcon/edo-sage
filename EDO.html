@@ -1,0 +1,197 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Ecuaciones diferenciales</title>
+    <script src="https://sagecell.sagemath.org/static/jquery.min.js"></script>
+    <script src="https://sagecell.sagemath.org/embedded_sagecell.js"></script>
+    <script>
+$(function () {
+    // Make *any* div with class 'compute' a Sage cell
+    sagecell.makeSagecell({inputLocation: 'div.compute',
+    			   template: sagecell.templates.minimal,
+                           evalButtonText: 'Ejecutar'});
+});
+    </script>
+  </head>
+  <body style="width: 800px;">
+
+  <h1>Ecuaciones diferenciales</h1>
+<p>Consideremos una ecuación diferencial ordinaria de primer orden,  $x' = f(t,x)$.</p>
+  
+  <h2>Campo de direcciones</h2>
+<p>Con extremo inicial en cada punto $(t_i,x_j)$ de una malla de puntos seleccionados del plano TX
+dibujamos el vector $(1,f(t_i,x_j)).$ Cada uno de estos vectores nos indica hacia dónde
+evolucionaría una solución que pasara por el punto $x_j$ en el instante $t_i$.
+</p>
+
+<p>Haz clic con el ratón sobre el botón &ldquo;Ejecutar&rdquo; para representar el campo de direcciones. <br/>
+Si cambias los parámetros pulsa el botón &ldquo;Update&rdquo; para que se vuelva a calcular y dibujar el campo.
+</p>
+
+<div class="compute">
+<script type="text/x-sage">
+var ('t x')
+@interact(layout={'top': [['f'], ['tmin','xmin'],['tmax','xmax'],['normalizados', 's'],['auto_update']]} )
+def _(f = input_box(x-x^2+t/5, '$dx/dt = $', width=25),
+      tmin = input_box( 0, '$t$ mín', width=5),
+      tmax = input_box(15, '$t$ máx', width=5),
+      xmin = input_box( 0, '$x$ mín', width=5),
+      xmax = input_box( 5, '$x$ máx', width=5),
+      s = selector([3 .. 10], default=5, label='tamaño gráfica'),
+      normalizados = checkbox(default=True, label="vectores normalizados?"),
+      auto_update=False):
+    
+    f(t,x) = f
+       
+    if (normalizados == True):
+        norma(t,x) = sqrt(1 + f(t,x)^2)
+        nfield = plot_vector_field((1/norma,f/norma), (t,tmin,tmax), (x,xmin,xmax),
+                               axes_labels=['$t$','$x$'], color='grey' )
+    else:
+        nfield = plot_vector_field((1,f), (t,tmin,tmax), (x,xmin,xmax),
+                               axes_labels=['$t$','$x$'], color='grey' )
+                               
+    show(nfield, figsize=s)
+    pretty_print(LatexExpr(r"\frac{d}{dt}x=" + latex(f(t,x))) )
+
+</script>
+</div>
+
+  <h2>Problema de valor inicial</h2>
+<p>Dada una ecuación diferencial ordinaria de primer orden,  $x' = f(t,x)$ dibuja la gráfica de la
+función que la verifica y además pasa por un punto dado.
+</p>
+
+<p>Haz clic con el ratón sobre el botón &ldquo;Ejecutar&rdquo; para ver la solución. <br/>
+Cada vez que cambies los parámetros pulsa el botón &ldquo;Update&rdquo; para que se recalcule todo.
+</p>
+
+<div class="compute">
+<script type="text/x-sage">
+var ('t x')
+@interact(layout={'top': [['f'], ['tmin','x0'],['tmax','s'],['auto_update']]} )
+def _(f = input_box(x-x^2+t/5, '$dx/dt = $', width=25),
+      tmin = input_box( 0, '$t$ mín', width=5),
+      tmax = input_box(15, '$t$ máx', width=5),
+      x0   = input_box( 2, '$x(t min)$', width=5),
+      s = selector([3 .. 10], default=5, label='tamaño gráfica'),
+      auto_update=False):
+    
+    f(t,x) = f    
+    P = desolve_rk4(f, x, ics=[tmin,x0], ivar=t, output='slope_field', end_points=[tmin,tmax], thickness=3)
+    show(P, figsize=s, axes_labels=['$t$','$x$'])
+    pretty_print(LatexExpr(r"\frac{d}{dt}x=" + latex(f(t,x))) )
+    pretty_print(LatexExpr("x(" +str(tmin)+")=" + str(x0)) )
+
+</script>
+</div>
+
+  <h2>Método de Euler</h2>
+Calcula una solución aproximada a una ecuación diferencial tomando incrementos discretos
+de tiempo de tamaño $d$. Una vez que hemos calculado la función hasta el instante $t=n\cdot d$,
+en el instante siguiente $t=(n+1)d$ la calculamos con el valor que toman tanto la función
+como su derivada en el anterior, $x(nd)$ y $x'(nd)$:
+  $$ x((n+1)d) = x(nd) + x'(nd)\cdot d.$$
+Puedes comparar la diferencia al utilizar dos incrementos de tiempo distintos.
+
+<div class="compute">
+<script type="text/x-sage">
+var ('t x')
+@interact(layout={'top': [['f'], ['tmin','x0'],['tmax','d'],['ok2','d2'],['cv','sol'],['dec','s'],['auto_update']]} )
+def _(f = input_box(x-x^2+t/5, '$dx/dt = $', width=25),
+      tmin = input_box( 0, '$t$ mín', width=5),
+      tmax = input_box( 5, '$t$ máx', width=5),
+      x0  = input_box( 2, '$x(t min)$', width=5),
+      d   = input_box( 1, 'd', width=5),
+      #d   = slider(0.01, vmax=5, step_size=0.01, default=1, label='d'),
+      ok2 = checkbox(default=False, label="otro d?"),
+      d2  = input_box( 0.5, 'd2', width=5),  
+      cv  = checkbox(default=True, label="campo de direcciones"),
+      sol = checkbox(default=False, label="mostrar solución"),
+      dec = selector([0 .. 10], default=4, label='número decimales tabla'),
+      s   = selector([3 .. 10], default=5, label='tamaño gráfica'),
+      auto_update=False):
+    
+    f(t,x) = f  
+    pasos = int(tmax/d) + 2
+    euler = list(range(pasos))
+    euler[0] = [tmin, x0, f(tmin,x0)]
+    [tiempo, puntox, diffx] = euler[0]
+    i=1
+    while (i < pasos):
+        euler[i] = [tiempo+d, N(puntox+diffx*d), N(f(tiempo+d,puntox+diffx*d))]
+        [tiempo, puntox, diffx] = euler[i]
+        i = i+1 
+    
+    puntos = [(i[0],i[1])  for i in euler]
+    puntosx = [i[1]  for i in euler]
+    maxt = euler[-1][0]
+    dibujapuntos = points(puntos, color='darkviolet', size=25)
+    LP = list_plot(puntos, plotjoined=True, color='mediumorchid', legend_label= "d = "+str(round(d,3)), thickness=2)
+    
+    #escribimos la tabla
+    eulerround = [["",round(i[0],dec), round(i[1],dec), round(i[2],dec)] for i in euler]
+    pretty_print(table([["d = "+str(round(d,dec)),"$t$","$x(t)$","$x'(t)$"]]+eulerround, header_row=True))
+ 
+    if ok2:  #si hay otro valor para el incremento (d2)
+        pasos2 = int(tmax/d2) + 2
+        euler2 = list(range(pasos2))
+        euler2[0] = [tmin, x0, f(tmin,x0)]
+        [tiempo, puntox, diffx] = euler2[0]
+        i=1
+        while (i < pasos2):
+            euler2[i] = [tiempo+d2, N(puntox+diffx*d2), N(f(tiempo+d2,puntox+diffx*d2))]
+            [tiempo, puntox, diffx] = euler2[i]
+            i = i+1 
+        
+        puntos2 = [(i[0],i[1])  for i in euler2]
+        puntosx = puntosx + [i[1]  for i in euler2]
+        maxt = max(maxt, euler2[-1][0])
+        
+        #escribimos la tabla
+        euler2round = [["",round(i[0],dec), round(i[1],dec), round(i[2],dec)] for i in euler2]
+        pretty_print(table([["d2 = "+str(round(d2,dec)),"$t$","$x(t)$","$x'(t)$"]]+euler2round, header_row=True))
+        
+        dibujapuntos = dibujapuntos + points(puntos2, color='red', size=25)
+        LP = LP + list_plot(puntos2, plotjoined=True, color='tomato', legend_label= "d = "+str(round(d2,3)),
+                            thickness=2)
+    
+    #dibujamos
+    if sol:
+        LP = desolve_rk4(f, x, ics=[tmin,x0], ivar=t, output='plot', color='lightsteelblue',
+                         end_points=[tmin,tmax],legend_label = 'solucion', thickness=3) + LP
+    if cv:  #si hay que dibujar el campo de direcciones
+        show(LP + dibujapuntos +  
+             plot_slope_field(f, (t,tmin,maxt), (x,min(puntosx),max(puntosx)), color='lightgrey'),
+             axes_labels=['$t$','$x$'], figsize=s)    
+    else:
+        show(LP + dibujapuntos, axes_labels=['$t$','$x$'], figsize=s) 
+
+    #expresamos el problema de valor inicial en LaTeX
+    latexstring = r"\left\{ \begin{array}{l} "
+    latexstring = latexstring + r"\frac{d}{dt}x=" + latex(f(t,x)) + r"\\ x(" + str(tmin) + ")=" + str(x0)      
+    latexstring = latexstring + r"\end{array} \right."   
+    pretty_print(LatexExpr(latexstring))
+
+</script>
+</div>
+
+<p> <br /> <p />
+<p><font color="gray" size="2" face="arial">
+Sage is free, open-source math - learn more and install at <a href="http://sagemath.org" target="_blank">sagemath.org</a>,
+and try it online at <a href="http://cloud.sagemath.com" target="_blank">cloud.sagemath.com</a><br />
+<hr />
+Fundamentos de Matemáticas. Grado en Biología. Universidad de La Laguna, Spain.<br />
+&copy; Carlos González-Alcón 2017-2018 (cgalcon AT ull.edu.es) &#8212; November 15, 2018.<br />
+
+<!-- © Carlos González-Alcón 2017 - this work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 License</a><br /> -->
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Licencia de Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />
+Esta obra está bajo una <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">licencia de Creative Commons Reconocimiento-CompartirIgual 4.0 Internacional</a>.
+<font />
+<p />
+
+
+</body>
+</html>
