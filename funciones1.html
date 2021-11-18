@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Explorando algunas funciones (1)</title>
+    <script src="https://sagecell.sagemath.org/static/jquery.min.js"></script>
+    <script src="https://sagecell.sagemath.org/embedded_sagecell.js"></script>
+    <script>
+$(function () {
+    // Make *any* div with class 'compute' a Sage cell
+    sagecell.makeSagecell({inputLocation: 'div.compute',
+    			   template: sagecell.templates.minimal,
+                           evalButtonText: 'Ver gráficas'});
+});
+    </script>
+  </head>
+  <body style="width: 800px;">
+
+  <h1>Explorando las funciones 1</h1>
+
+  <h2>Funciones lineales</h2>
+Las funciones lineales son de la forma $y=mx+b$. Su representación gráfica es una recta con pendiente $m$ y que corta en $b$ al eje OY.
+Haz clic con el ratón sobre el botón &ldquo;Ver gráficas&rdquo; para ver la representación gráfica.
+
+<div class="compute">
+<script type="text/x-sage">
+
+@interact
+def _(m = slider([i/4 for i in [-20..20]], default=1, label="pendiente: $m$"),
+      b = slider([i/4 for i in [-8..8]], default=0, label="corte con el eje y: $b$")):
+    f(x) = m*x+b
+    grafica = plot(f(x), (x,-5,5), ymin=-5, ymax=5, thickness=3,
+        aspect_ratio=1, legend_label='$f(x) = '+latex(f(x))+'$')
+    show(grafica, frame=True, gridlines=True, axes_labels=['x','f(x)'], title='funcion lineal')
+</script>
+</div>
+
+
+  <h2>Parábolas</h2>
+La representación gráfica de un polinomio de grado dos ($ax^2+bx+c$) es una parábola.
+  Mira cómo cambia la forma según los parámetros.
+
+<div class="compute">
+<script type="text/x-sage">
+@interact
+def _(a = slider([i/4 for i in [-20..20]], default=1, label="$a$"),
+      b = slider([i/4 for i in [-20..20]], default=0, label="$b$"),
+      c = slider([i/4 for i in [-20..20]], default=0, label="$c$")):
+    f(x) = a*x^2+b*x+c 
+    grafica = plot(f(x), (x,-5,5), ymin=-5, ymax=5, thickness=3,
+        aspect_ratio=1, legend_label = '$'+latex(f(x))+'$')
+    show(grafica, frame=True, gridlines=True, axes_labels=['x','f(x)'], title='parabola')
+</script></div>
+
+
+  <h2>Polinomios (hasta grado 4)</h2>
+Se trata de funciones de la forma $f(x) = a_4 x^4 + a_3 x^3 +  a_2 x^2 +  a_1 x + a_0$.  
+<div class="compute">
+<script type="text/x-sage">
+@interact
+def _(a4 = slider([i/4 for i in [-20..20]], default=1/2, label="$a_4$"),
+      a3 = slider([i/4 for i in [-20..20]], default=1/2, label="$a_3$"),
+      a2 = slider([i/4 for i in [-20..20]], default=-4, label="$a_2$"),
+      a1 = slider([i/4 for i in [-20..20]], default=2, label="$a_1$"),
+      a0 = slider([i/4 for i in [-10..10]], default=1, label="$a_0$"),
+      rangoX = range_slider(-20, vmax=20, step_size=1, default=(-5,5),
+                            label='rango de las x'),
+      rangoY = range_slider(-20, vmax=20, step_size=1, default=(-5,5),
+                            label='rango de las y')):
+    f(x) = a4*x^4+a3*x^3+a2*x^2+a1*x+a0
+    grafica = plot(f(x), (rangoX[0],rangoX[1]), 
+                   ymin=rangoY[0], ymax=rangoY[1], thickness=3, aspect_ratio=1,
+                   legend_label='$f(x) = '+latex(f(x))+'$')
+    show(grafica, xmin=rangoX[0], xmax=rangoX[1], ymin=rangoY[0], ymax=rangoY[1],
+         frame=True, gridlines=True, axes_labels=['x','f(x)'], title='polinomio')
+</script></div>
+
+
+<p><font color="gray" size="2">
+Sage is free, open-source math - learn more and install at <a href="http://sagemath.org" target="_blank">sagemath.org</a>,
+and try it online at <a href="http://cloud.sagemath.com" target="_blank">cloud.sagemath.com</a><br />
+<hr />
+Fundamentos de Matemáticas. Grado en Biología. Universidad de La Laguna, Spain.<br />
+&copy; Carlos González-Alcón 2017--- (cgalcon AT ull.edu.es) &#8212; October 31, 2017.<br />
+
+<!-- © Carlos González-Alcón 2017 - this work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 License</a><br /> -->
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Licencia de Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />Este obra está bajo una <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">licencia de Creative Commons Reconocimiento-CompartirIgual 4.0 Internacional</a>.
+<font />
+<p />
+
+</body>
+</html>

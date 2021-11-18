@@ -1,0 +1,194 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Derivada de una función</title>
+    <script src="https://sagecell.sagemath.org/static/jquery.min.js"></script>
+    <script src="https://sagecell.sagemath.org/embedded_sagecell.js"></script>
+    <script>
+$(function () {
+    // Make *any* div with class 'compute' a Sage cell
+    sagecell.makeSagecell({inputLocation: 'div.compute',
+    			   template: sagecell.templates.minimal,
+                           evalButtonText: 'Ver gráficas'});
+});
+    </script>
+  </head>
+  <body style="width: 800px;">
+
+  <h1>Derivadas</h1>
+
+  <h2>Derivada y recta tangente</h2>
+La recta tangente a una función $f(x)$ en $x_0$ es una recta que pasa por el punto $(x_0, f(x_0))$ y tiene como pendiente la derivada $f'(x_0)$. Su ecuación será:
+$$y = f(x_0) + f'(x_0)(x - x_0).$$
+Haz clic sobre el botón &ldquo;Ver gráficas&rdquo; para representar una función y su recta tangente.
+  Si cambias los parámetros pulsa el botón &ldquo;Update&rdquo;
+
+<div class="compute">
+<script type="text/x-sage">
+@interact(layout={'top': [['f'], ['xmin','ymin'], ['xmax','ymax'], ['a'], ['auto_update']]} )
+def _(f = input_box((2*x^2 - exp(x)) / (x^4-x+2), 'función $f(x)=$', width=25),
+      xmin = input_box(-5, '$x$ mín', width=5),
+      xmax = input_box( 5, '$x$ máx', width=5),
+      ymin = input_box(-1, '$y$ mín', width=5),
+      ymax = input_box( 1, '$y$ máx', width=5),
+      a    = input_box( 0, '$x_0$', width=5),
+      auto_update=False):
+    
+    f(x) = f
+    rangoX = [xmin,xmax]
+          
+    titulo = 'Recta tangente a $f(x)=' + latex(f(x)) + '$ en el punto $x_0$=' + str(N(a,digits=2))
+    fg = plot(f(x), xmin=rangoX[0], xmax=rangoX[1], title=titulo+'\n', 
+              thickness=4, detect_poles='show', adaptive_tolerance=0.0001)
+    
+    taylorf = f(x).taylor(x,a,1)
+    
+    rangoY = [fg.ymin(),fg.ymax()]
+    if ymin != 'na':
+        rangoY[0] = ymin
+    if ymax != 'na':
+        rangoY[1] = ymax
+
+    dib = plot(taylorf, xmin=rangoX[0], xmax=rangoX[1], ymin=rangoY[0], ymax=rangoY[1],
+               thickness=2, color='red')
+    punto = points((a,f(a)), color='red', pointsize=90)
+    ptext2 = '$y = ' + latex(taylorf.polynomial(RealField(12))) + '$'    
+    xpos = mean(rangoX)
+    ypos2 = rangoY[0] - 0.17*(rangoY[1]-rangoY[0])
+    textop2 = text(ptext2, (xpos,ypos2), fontsize=14, color='red')          
+
+    show(fg+dib+textop2+punto, figsize=6)
+
+</script>
+</div>
+
+
+  <h2>Una función y su función derivada</h2>
+La derivada de una función nos indica si la función crece o decrece y a qué ritmo. Donde la derivada sea positiva la función será creciente, donde negativa será decreciente. En los puntos donde se anule puede que haya un máximo o un mínimo local.
+A continuación puedes representar simultáneamente una función y su derivada.
+
+<div class="compute">
+<script type="text/x-sage">
+@interact
+def _(f=input_box((2*x^2 - exp(x)) / (x^4-x+2), 'función $f(x)=$', width=25),
+      xmin = input_box(-5, '$x$ mín', width=5),
+      xmax = input_box( 5, '$x$ máx', width=5),
+      misma_grafica = checkbox(default=False, label="en la misma gráfica"),
+      auto_update=False ):
+       
+    f(x) = f
+    derivada = f.derivative() 
+    rangoX = [xmin,xmax]
+    
+    fg = plot(f(x), xmin=rangoX[0], xmax=rangoX[1], thickness=3,
+              detect_poles='show', adaptive_tolerance=0.0001,
+              legend_label='$f(x)='+latex(f(x))+'$',
+              title=pretty_print('Una función y su derivada') )    
+
+    #búsqueda de los ceros de la derivada (los que aparecen en la gráfica)
+    dg = plot(derivada, xmin=rangoX[0], xmax=rangoX[1], thickness=2)
+    listapuntos = list(dg[0])
+    zeros = []                         
+    for i in range(len(listapuntos)-1):
+        if sign(listapuntos[i][1]) != sign(listapuntos[i+1][1]):
+            zeros.append( find_root(derivada,listapuntos[i][0],listapuntos[i+1][0]) )
+            
+    dg = plot(derivada, xmin=rangoX[0], xmax=rangoX[1], thickness=2,
+              adaptive_tolerance=0.0001, detect_poles='show',
+              color='red', legend_label="$f'(x)="+latex(derivada(x))+"$")
+    
+    if (misma_grafica == True):
+        if len(zeros) > 0:
+            for z in zeros:
+                dg += line2d([(z,f(z)), (z,derivada(z))], color='grey')
+        show(fg+dg, figsize=6)
+    else:
+        if len(zeros) > 0:
+            for z in zeros:
+                fg += line2d([(z,f(z)), (z,fg.ymin())], color='grey')
+                dg += line2d([(z,0), (z,dg.ymax())], color='grey')
+        show(fg, figsize=5)
+        show(dg, figsize=5)
+        
+    pretty_print("La primera derivada de f(x) es ")
+    pretty_print(LatexExpr("f'(x)="+latex(derivada(x))))
+    if len(zeros) > 0:
+        pretty_print("y se anula en los puntos")
+        print(zeros)
+    else:
+        pretty_print("y no se anula en nigún punto de intervalo considerado.")    
+</script></div>
+
+
+  <h2>Polinomios de Taylor de una función</h2>
+Dada una función derivable suficientes veces en un punto $x_0$ podemos encontrar un polinomio que se parece mucho a la función en los alrededores del punto $x_0$. El polinomio de Taylor de grado $n$ viene dado por:
+$$p_n(x) = f(x_0) + f'(x_0)(x - x_0) + \frac{f''(x_0)}{2}(x - x_0)^2 + \cdots + \frac{f^{(n}(x_0)}{n!}(x - x_0)^n.$$  
+
+<div class="compute">
+<script type="text/x-sage">
+@interact(layout={'top': [['f'], ['xmin','ymin'],['xmax','ymax'], ['a','k'],['auto_update']]} )
+def _(f = input_box((2*x^2 - exp(x)) / (x^4-x+2), 'función $f(x)=$', width=25),
+      xmin = input_box(default=-5, label='$x$ mín', width=5),
+      xmax = input_box(default= 5, label='$x$ máx', width=5),
+      ymin = input_box(default=-1, label='$y$ mín', width=5),
+      ymax = input_box(default= 1, label='$y$ máx', width=5),
+      a    = input_box(default= 0, label='$x_0$',   width=5),              
+      k = selector([0 .. 10], default=2, label='grado del polinomio'),
+      auto_update=False ):
+    
+    f(x) = f
+    rangoX = [xmin,xmax]
+    #rangoY = [ymin,ymax]
+      
+    titulo = '$f(x)=' + latex(f(x)) + '$ y su polinomio de Taylor de grado ' + str(k) + ' en el punto $x_0$=' + str(N(a,digits=3))
+    fg = plot(f(x), xmin=rangoX[0], xmax=rangoX[1], adaptive_tolerance=0.0001,   
+          thickness=4, title=titulo, detect_poles='show',
+          legend_label = '$f(x)=' + latex(f(x)) + '$' )
+    fg += points((a,f(a)), color='red', pointsize=90)
+    taylorf = f(x).taylor(x,a,k)
+
+    rangoY = [fg.ymin(),fg.ymax()]
+    if ymin != '':
+        rangoY[0] = ymin
+    if ymax != '':
+        rangoY[1] = ymax                
+    dib = plot(taylorf, xmin=rangoX[0], xmax=rangoX[1], ymin=rangoY[0], ymax=rangoY[1],
+               thickness=2, color='red')
+    
+    #para escribir los polinomios en (x-a) y en x
+    p = 0
+    for i in range(k+1):
+        p += diff(f,x,i)(a).polynomial(RealField(12))/factorial(i)*(x-N(a,digits=2) )^i
+    if (k>1):
+        ptext1 = '$p_{'+str(k)+'}(x)='+latex(p)+'$'
+    else:
+        ptext1 = ''
+    ptext2 = '$p_{'+str(k)+'}(x)='+latex(taylorf.polynomial(RealField(12)))+'$'    
+    xpos = mean(rangoX)
+
+    ypos1 = rangoY[0] - .1*(rangoY[1]-rangoY[0])
+    ypos2 = rangoY[0] - .17*(rangoY[1]-rangoY[0])
+    textop1 = text(ptext1, (xpos,ypos1), fontsize=14, color='red')   
+    textop2 = text(ptext2, (xpos,ypos2), fontsize=14, color='red')          
+
+    show(fg+dib+textop1+textop2, figsize=6)
+</script></div>
+
+
+
+<p><font color="gray" size="2">
+Sage is free, open-source math - learn more and install at <a href="http://sagemath.org" target="_blank">sagemath.org</a>,
+and try it online at <a href="http://cloud.sagemath.com" target="_blank">cloud.sagemath.com</a><br />
+<hr />
+Fundamentos de Matemáticas. Grado en Biología. Universidad de La Laguna, Spain.<br />
+&copy; Carlos González-Alcón 2017-2020 (cgalcon AT ull.edu.es) &#8212; January 8, 2020.<br />
+
+<!-- © Carlos González-Alcón 2017 - this work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 License</a><br /> -->
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Licencia de Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />Este obra está bajo una <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">licencia de Creative Commons Reconocimiento-CompartirIgual 4.0 Internacional</a>.
+<font />
+<p />
+
+</body>
+</html>
