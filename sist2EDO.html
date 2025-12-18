@@ -22,12 +22,12 @@ $(function () {
   <h2>Campo de direcciones</h2>
 <p>Sea un sistema de dos ecuaciones diferenciales ordinarias de primer orden autónomas
 $$ \begin{cases}
-  \frac{d}{dt}x_1 = f_1(x_1, x_2)\\
-  \frac{d}{dt}x_2 = f_2(x_1, x_2)\\
+  \frac{d}{dt}x = f_x(x, y)\\
+  \frac{d}{dt}y = f_y(x, y)\\
   t \in [t_{min}, t_{max}]\\
-  x_1(t_{min}) = x_1^0;\; x_2(t_{min}) = x_2^0.
+  x(t_{min}) = x_0;\; y(t_{min}) = y_0.
   \end{cases}$$
-Tomemos el plano $X_1X_2$ como el conjunto de los posibles estados del sistema. En cada punto $(x_1,x_2)$ podemos dibujar el vector $(f_1(x_1,x_2),f_2(x_1,x_2))$ que indica la dirección que tomaría una trayectoria del sistema que pasara por ese punto.
+Tomemos el plano $XY$ como el conjunto de los posibles estados del sistema. En cada punto $(x,y)$ podemos dibujar el vector $(f_x(x,y),f_y(x,y))$ que indica la dirección que tomaría una trayectoria del sistema que pasara por ese punto.
 </p>
 
 <p>Haz clic con el ratón sobre el botón &ldquo;Ejecutar&rdquo; para representar el campo de direcciones. <br/>
@@ -36,36 +36,36 @@ Si cambias los parámetros pulsa el botón &ldquo;Update&rdquo; para recalcular.
 
 <div class="compute">
 <script type="text/x-sage">
-var ('t y x1 x2')
-@interact(layout={'top': [['f1'],['f2']], 'bottom': [['x1min','x2min'],['x1max','x2max'],['auto_update','normalizados', 's']]} )
-def _(f1 = input_box(3*x1^(5/4) - 2*x1*x2, '$dx_1/dt = f_1(x_1,x_2) =$', width=30),
-      f2 = input_box(-x2^2 + x1*x2, '$dx_2/dt = f_2(x_1,x_2) =$', width=30),
-      x1min = input_box( 0, '$x_1$ mín', width=5),
-      x1max = input_box( 15, '$x_1$ máx', width=5),
-      x2min = input_box( 0, '$x_2$ mín', width=5),
-      x2max = input_box( 8, '$x_2$ máx', width=5),
+var ('t y x')
+@interact(layout={'top': [['fx'],['fy']], 'bottom': [['xmin','ymin'],['xmax','ymax'],['auto_update','normalizados', 's']]} )
+def _(fx = input_box(3*x^(5/4) - 2*x*y, '$dx/dt = f_x(x,y) =$', width=30),
+      fy = input_box(-y^2 + x*y, '$dy/dt = f_y(x,y) =$', width=30),
+      xmin = input_box( 0, '$x$ mín', width=5),
+      xmax = input_box( 15, '$x$ máx', width=5),
+      ymin = input_box( 0, '$y$ mín', width=5),
+      ymax = input_box( 8, '$y$ máx', width=5),
       s = selector([3 .. 10], default=5, label='tamaño gráfica'),
       normalizados = checkbox(default=True, label="vectores normalizados?"),
       auto_update=False):
     
-    f1(x1,x2) = f1
-    f2(x1,x2) = f2
+    fx(x,y) = fx
+    fy(x,y) = fy
     def f(t,y):
-        return[f1(y[0],y[1]), f2(y[0],y[1])]
+        return[fx(y[0],y[1]), fy(y[0],y[1])]
     
     if (normalizados == True):
-        norma(x,y) = sqrt(f1(x,y)^2 + f2(x,y)^2)
-        nfield = plot_vector_field((f1(x,y)/norma(x,y),f2(x,y)/norma(x,y)),
-                                   (x,x1min,x1max), (y,x2min,x2max),
-                                   axes_labels=['$x_1$','$x_2$'], color='grey' )
+        norma(x,y) = sqrt(fx(x,y)^2 + fy(x,y)^2)
+        nfield = plot_vector_field((fx(x,y)/norma(x,y),fy(x,y)/norma(x,y)),
+                                   (x,xmin,xmax), (y,ymin,ymax),
+                                   axes_labels=['$x$','$xy$'], color='grey' )
     else:
-        nfield = plot_vector_field((f1(x,y),f2(x,y)), (x,x1min,x1max), (y,x2min,x2max),
-                               axes_labels=['$x_1$','$x_2$'], color='grey' )                    
+        nfield = plot_vector_field((fx(x,y),fy(x,y)), (x,xmin,xmax), (y,ymin,ymax),
+                               axes_labels=['$x$','$y$'], color='grey' )
     
-    show(nfield, figsize=s, axes_labels=['$x_1$','$x_2$'])
+    show(nfield, figsize=s, axes_labels=['$x$','$y$'])
     pretty_print(LatexExpr(
-        r"\left\{ \begin{array}{l} \frac{d}{dt}x_1=" +
-        latex(f1(x1,x2)) + r"\\ \frac{d}{dt}x_2=" + latex(f2(x1,x2)) +
+        r"\left\{ \begin{array}{l} \frac{d}{dt}x=" +
+        latex(fx(x,y)) + r"\\ \frac{d}{dt}y=" + latex(fy(x,y)) +
         r"\end{array} \right." ) )
 
 </script>
@@ -145,75 +145,75 @@ def _(f1 = input_box(3*x1^1.3 - 2*x1*x2, '$dx_1/dt = f_1(x_1,x_2) =$', width=30)
 <div class="compute">
 <script type="text/x-sage">
 
-var ('t x1 x2')
-derx1 = -3*x1*x2/(x1+2) - 4*x1 +8
-derx2 = - 4*x2 + 3*x1*x2/(x1+2)
-x1label = '$x_1$'
-x2label = '$x_2$'
-x1x2label = [x1label,x2label]
+var ('t x y')
+derx1 = -3*x*y/(x+2) - 4*x +8
+derx2 = - 4*y + 3*x*y/(x+2)
+xlabel = '$x$'
+ylabel = '$y$'
+xylabel = [xlabel,ylabel]
 @interact(layout={
-    'top': [['f1'],['f2']],
-    'bottom': [['x1min','x2min'],['x1max','x2max'],['tmin','x10', 'x20'],['tmax'],
+    'top': [['fx'],['fy']],
+    'bottom': [['xmin','ymin'],['xmax','ymax'],['tmin','x10', 'x20'],['tmax'],
                ['auto_update','normalizados','nulclinas' 's']]} )
-def _(f1 = input_box(derx1, '$dx_1/dt = f_1(x_1,x_2) =$', width=30),
-      f2 = input_box(derx2, '$dx_2/dt = f_2(x_1,x_2) =$', width=30),
-      x1min = input_box( -10, x1label+' mín', width=10),
-      x1max = input_box( 5, x1label+' máx', width=10),
-      x2min = input_box( -2, x2label+' mín', width=10),
-      x2max = input_box(  13, x2label+' máx', width=10),
+def _(fx = input_box(derx1, '$dx/dt = f_x(x,y) =$', width=30),
+      fy = input_box(derx2, '$dy/dt = f_y(x,y) =$', width=30),
+      xmin = input_box( -10, xlabel+' mín', width=10),
+      xmax = input_box( 5, xlabel+' máx', width=10),
+      ymin = input_box( -2, ylabel+' mín', width=10),
+      ymax = input_box(  13, ylabel+' máx', width=10),
       tmin  = input_box( 0, '$t$ mín', width=10),
       tmax  = input_box( 2, '$t$ máx', width=10),
-      x10   = input_box( -10, x1label+'$(t_{min})$', width=10),
-      x20   = input_box( 1, x2label+'$(t_{min})$', width=10),
+      x0   = input_box( -10, xlabel+'$(t_{min})$', width=10),
+      y0   = input_box( 1, ylabel+'$(t_{min})$', width=10),
       s = selector([3 .. 10], default=5, label='tamaño gráfica'),
       normalizados = checkbox(default=True, label="¿vectores normalizados?"),
       nulclinas = checkbox(default=True, label="¿dibujar nulclinas?"),
       auto_update=False):
     
     numpuntos = 120 #int(60*(tmax - tmin))
-    f1(x1,x2) = f1
-    f2(x1,x2) = f2
+    fx(x,y) = fx
+    fy(x,y) = fy
     def f(t,y):
-        return[f1(y[0],y[1]), f2(y[0],y[1])]
+        return[fx(y[0],y[1]), fy(y[0],y[1])]
     
     T = ode_solver()
     T.function = f
-    T.ode_solve(y_0 = [x10,x20], t_span=[tmin,tmax], num_points=numpuntos)
+    T.ode_solve(y_0 = [x0,y0], t_span=[tmin,tmax], num_points=numpuntos)
     
-    solx1 = T.interpolate_solution(i=0)
-    grafx1 = line(solx1, color='red', thickness=3, legend_label=x1label)
-    solx2 = T.interpolate_solution(i=1)
-    grafx2 = line(solx2, color='green', thickness=3, legend_label=x2label)
+    solx = T.interpolate_solution(i=0)
+    grafx = line(solx, color='red', thickness=3, legend_label=xlabel)
+    soly = T.interpolate_solution(i=1)
+    grafy = line(soly, color='green', thickness=3, legend_label=ylabel)
        
     if (normalizados == True):
-        norma(x,y) = sqrt(f1(x,y)^2 + f2(x,y)^2)
-        nfield = plot_vector_field((f1(x,y)/norma(x,y),f2(x,y)/norma(x,y)),
-                                   (x,x1min,x1max), (y,x2min,x2max),
-                                   axes_labels=x1x2label, color='grey' )
+        norma(x,y) = sqrt(fx(x,y)^2 + fy(x,y)^2)
+        nfield = plot_vector_field((fx(x,y)/norma(x,y), fy(x,y)/norma(x,y)),
+                                   (x, xmin, xmax), (y, ymin, ymax),
+                                   axes_labels=xylabel, color='grey' )
     else:
-        nfield = plot_vector_field((f1(x,y),f2(x,y)), (x,x1min,x1max), (y,x2min,x2max),
-                               axes_labels=x1x2label, color='grey' )
-    
-    solv =  [T.solution[k][1] for k in range(numpuntos)] 
+        nfield = plot_vector_field((fx(x,y),fy(x,y)), (x, xmin, xmax), (y, ymin, ymax),
+                               axes_labels = xylabel, color='grey' )
+
+    solv =  [T.solution[k][1] for k in range(numpuntos)]
     
     #campo de vectores con o sin las nulclinas
-    iso1 = implicit_plot( f1(x,y) == 0, (x,x1min,x1max), (y,x2min,x2max), color='red',
-                         linewidth=5, legend_label='nulclina de '+x1label)
-    iso2 = implicit_plot( f2(x,y) == 0, (x,x1min,x1max), (y,x2min,x2max), color='green',
-                         linewidth=3, legend_label='nulclina de '+x2label)
+    isox = implicit_plot( fx(x,y) == 0, (x, xmin, xmax), (y, ymin, ymax), color='red',
+                         linewidth=5, legend_label='nulclina de '+xlabel)
+    isoy = implicit_plot( fy(x,y) == 0, (x, xmin, xmax), (y, ymin, ymax), color='green',
+                         linewidth=3, legend_label='nulclina de '+ylabel)
     if (nulclinas == True):
-        show(nfield+iso1+iso2, figsize=s, aspect_ratio=1, axes=True,
-             title='Nulclinas de '+x1label+' en rojo, de '+x2label+' en verde')
+        show(nfield+isox+isoy, figsize=s, aspect_ratio=1, axes=True,
+             title='Nulclinas de '+xlabel+' en rojo, de '+ylabel+' en verde')
     else:
         show(nfield, figsize=s, aspect_ratio=1, axes=True)
     
     #trayectoria sobre el campo de vectores
-    maximox1 = max([p[1] for p in solx1])
-    maximox2 = max([p[1] for p in solx2])
-    maximo = max(maximox1, maximox2)
-    minimox1 = min([p[1] for p in solx1])
-    minimox2 = min([p[1] for p in solx2])
-    minimo = min(minimox1, minimox2)
+    maximox = max([p[1] for p in solx])
+    maximoy = max([p[1] for p in soly])
+    maximo = max(maximox, maximoy)
+    minimox = min([p[1] for p in solx])
+    minimoy = min([p[1] for p in soly])
+    minimo = min(minimox, minimoy)
     
     #dividimos la trayectoria en tramos y los señalamos con puntos naranjas y azules
     dividirtrayectoria = 6  #la trayectoria la divido en estas partes (número par)
@@ -230,31 +230,31 @@ def _(f1 = input_box(derx1, '$dx_1/dt = f_1(x_1,x_2) =$', width=30),
     lineasTemporales = line([(tmin,minimo), (tmin,minimo)]) #nada, solo para inicializar
       
     if (normalizados == True):
-        norma(x,y) = sqrt(f1(x,y)^2 + f2(x,y)^2)
-        nfieldtrayectoria = plot_vector_field((f1(x,y)/norma(x,y),f2(x,y)/norma(x,y)),
-                                   (x,min(minimox1,x1min),max(maximox1,x1max)),
-                                   (y,min(minimox2,x2min),max(maximox2,x2max)),
-                                   axes_labels=x1x2label, color='grey' )
+        norma(x,y) = sqrt(fx(x,y)^2 + fy(x,y)^2)
+        nfieldtrayectoria = plot_vector_field((fx(x,y)/norma(x,y), fy(x,y)/norma(x,y)),
+                                   (x, min(minimox, xmin), max(maximox, xmax) ),
+                                   (y, min(minimoy, ymin), max(maximoy, ymax) ),
+                                   axes_labels=xylabel, color='grey' )
     else:
-        nfieldtrayectoria = plot_vector_field((f1(x,y),f2(x,y)),
-                                   (x,min(minimox1,x1min),max(maximox1,x1max)),
-                                   (y,min(minimox2,x2min),max(maximox2,x2max)),
-                                   axes_labels=x1x2label, color='grey')
-    show(nfieldtrayectoria+puntos+line(solv), figsize=s, axes_labels=x1x2label,
-         aspect_ratio=1,title='Trayectoria desde el punto ('+str(x10)+','+str(x20)+')')
+        nfieldtrayectoria = plot_vector_field((fx(x,y), fy(x,y)),
+                                   (x, min(minimox, xmin), max(maximox, xmax) ),
+                                   (y, min(minimoy, ymin), max(maximoy, ymax) ),
+                                   axes_labels = xylabel, color='grey')
+    show(nfieldtrayectoria+puntos+line(solv), figsize=s, axes_labels=xylabel,
+         aspect_ratio=1,title='Trayectoria desde el punto ('+str(x0)+','+str(y0)+')')
     
     #serie temporal
     for pt in puntosTemporales1:
        lineasTemporales += line([(pt,minimo), (pt,maximo)], linestyle=':', color='darkblue') 
     for pt in puntosTemporales2:
        lineasTemporales += line([(pt,minimo), (pt,maximo)], linestyle=':', color='orangered') 
-    show(lineasTemporales+grafx1+grafx2, figsize=s, axes_labels=['$t$',''])
+    show(lineasTemporales+grafx+grafy, figsize=s, axes_labels=['$t$',''])
     
     pretty_print(LatexExpr(
-        r"\left\{ \begin{array}{l} \frac{d}{dt}x_1=" +
-        latex(f1(x1,x2)) + r"\\ \frac{d}{dt}x_2=" + latex(f2(x1,x2)) +
+        r"\left\{ \begin{array}{l} \frac{d}{dt}x =" +
+        latex(fx(x,y)) + r"\\ \frac{d}{dt}y =" + latex(fy(x,y)) +
         r"\end{array} \right." ) )
-    equilibrios = solve([f1 == 0, f2 == 0 ], x1,x2)    
+    equilibrios = solve([fx == 0, fy == 0 ], x, y)
     print('Equilibrios:')
     print(equilibrios)
 </script>
@@ -266,7 +266,7 @@ Sage is free, open-source math - learn more and install at <a href="http://sagem
 and try it online at <a href="http://cloud.sagemath.com" target="_blank">cloud.sagemath.com</a><br />
 <hr />
 Fundamentos de Matemáticas. Grado en Biología. Universidad de La Laguna, Spain.<br />
-&copy; Carlos González-Alcón 2017-2024 (cgalcon AT ull.edu.es) &#8212; December 9, 2024.<br />
+&copy; Carlos González-Alcón 2017-2025 (cgalcon AT ull.edu.es) &#8212; December 18, 2025.<br />
 
 <!-- © Carlos González-Alcón 2017 - this work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 License</a><br /> -->
 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Licencia de Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />
