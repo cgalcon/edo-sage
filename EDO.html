@@ -59,6 +59,10 @@ def _(f = input_box(x-x^2+t/5, '$dx/dt = $', width=25),
 </script>
 </div>
 
+
+
+
+
   <h2>Problema de valor inicial</h2>
 <p>Dada una ecuación diferencial ordinaria de primer orden,  $x' = f(t,x)$ dibuja la gráfica de la
 función que la verifica y además pasa por un punto dado.
@@ -71,22 +75,51 @@ Cada vez que cambies los parámetros pulsa el botón &ldquo;Update&rdquo; para q
 <div class="compute">
 <script type="text/x-sage">
 var ('t x')
-@interact(layout={'top': [['f'], ['tmin','x0'],['tmax','s'],['auto_update']]} )
-def _(f = input_box(x-x^2+t/5, '$dx/dt = $', width=25),
+@interact(layout={'top': [['f'], ['tmin','xmin','s'],['tmax','xmax',''],['six1','six2','six3'],['x01','x02','x03'],['auto_update']]} )
+def _(f = input_box(x-x^2+t/5, '$dx/dt = $', width=35),
       tmin = input_box( 0, '$t$ mín', width=5),
       tmax = input_box(15, '$t$ máx', width=5),
-      x0   = input_box( 2, '$x(t min)$', width=5),
+      xmin = input_box( 0, '$x$ mín', width=5),
+      xmax = input_box( 5, '$x$ máx', width=5),
+      x01  = input_box( 0, '$x(t$ min)', width=5),
+      x02  = input_box( '', '$x(t$ min)', width=5),
+      x03  = input_box( '', '$x(t$ min)', width=5),
+      six1 = checkbox(default=True, label=""),
+      six2 = checkbox(default=False, label=""),
+      six3 = checkbox(default=False, label=""),
       s = selector([3 .. 10], default=5, label='tamaño gráfica'),
       auto_update=False):
     
     f(t,x) = f    
-    P = desolve_rk4(f, x, ics=[tmin,x0], ivar=t, output='slope_field', end_points=[tmin,tmax], thickness=3)
-    show(P, figsize=s, axes_labels=['$t$','$x$'])
-    pretty_print(LatexExpr(r"\frac{d}{dt}x=" + latex(f(t,x))) )
-    pretty_print(LatexExpr("x(" +str(tmin)+")=" + str(x0)) )
+    P1 = desolve_rk4(f, x, ics=[tmin,x01], ivar=t, output='plot', end_points=[tmin,tmax], thickness=3, color='blue',
+    legend_label="x(" +str(tmin)+")=" + str(x01))
 
+    if six2:
+      P2 = desolve_rk4(f, x, ics=[tmin,x02], ivar=t, output='plot', end_points=[tmin,tmax], thickness=3, color='purple', legend_label="x(" +str(tmin)+")=" + str(x02) )
+    else:
+      P2 = desolve_rk4(f, x, ics=[tmin,x01], ivar=t, output='plot', end_points=[tmin,tmin], thickness=3, color='blue')
+
+    if six3:
+      P3 = desolve_rk4(f, x, ics=[tmin,x03], ivar=t, output='plot', end_points=[tmin,tmax], thickness=3, color='red', legend_label="x(" +str(tmin)+")=" + str(x03))
+    else:
+      P3 = desolve_rk4(f, x, ics=[tmin,x01], ivar=t, output='plot', end_points=[tmin,tmin], thickness=3, color='blue')
+
+    norma(t,x) = sqrt(1 + f(t,x)^2)
+    nfield = plot_vector_field((1/norma,f/norma), (t,tmin,tmax), (x,xmin,xmax),
+                               axes_labels=['$t$','$x$'], color='grey' )
+    show(nfield+P1+P2+P3, figsize=s, axes_labels=['$t$','$x$'])
+
+    pretty_print(LatexExpr(r"\frac{d}{dt}x=" + latex(f(t,x))) )
+    pretty_print(LatexExpr("x(" +str(tmin)+")=" + str(x01) ) )
+    if six2:
+      pretty_print(LatexExpr("x(" +str(tmin)+")=" + str(x02) ) )
+    if six3:
+      pretty_print(LatexExpr("x(" +str(tmin)+")=" + str(x03) ) )
 </script>
 </div>
+
+
+
 
   <h2>Método de Euler</h2>
 Calcula una solución aproximada a una ecuación diferencial tomando incrementos discretos
@@ -184,7 +217,7 @@ Sage is free, open-source math - learn more and install at <a href="http://sagem
 and try it online at <a href="http://cloud.sagemath.com" target="_blank">cloud.sagemath.com</a><br />
 <hr />
 Fundamentos de Matemáticas. Grado en Biología. Universidad de La Laguna, Spain.<br />
-&copy; Carlos González-Alcón 2017-2018 (cgalcon AT ull.edu.es) &#8212; November 15, 2018.<br />
+&copy; Carlos González-Alcón 2017-2025 (cgalcon AT ull.edu.es) &#8212; December 19, 2025.<br />
 
 <!-- © Carlos González-Alcón 2017 - this work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 License</a><br /> -->
 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Licencia de Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />
