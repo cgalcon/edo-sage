@@ -55,7 +55,7 @@ def _(f = input_box((2*x^2 - exp(x)) / (x^4-x+2), 'función $f(x)=$', width=25),
                thickness=2, color='red')
     punto = points((a,f(a)), color='red', pointsize=90)
     ptext2 = '$y = ' + latex(taylorf.polynomial(RealField(12))) + '$'    
-    xpos = mean(rangoX)
+    xpos = (xmin + xmax)/2
     ypos2 = rangoY[0] - 0.17*(rangoY[1]-rangoY[0])
     textop2 = text(ptext2, (xpos,ypos2), fontsize=14, color='red')          
 
@@ -166,7 +166,7 @@ def _(f = input_box((2*x^2 - exp(x)) / (x^4-x+2), 'función $f(x)=$', width=25),
     else:
         ptext1 = ''
     ptext2 = '$p_{'+str(k)+'}(x)='+latex(taylorf.polynomial(RealField(12)))+'$'    
-    xpos = mean(rangoX)
+    xpos = (xmin + xmax)/2
 
     ypos1 = rangoY[0] - .1*(rangoY[1]-rangoY[0])
     ypos2 = rangoY[0] - .17*(rangoY[1]-rangoY[0])
@@ -183,9 +183,9 @@ Sage is free, open-source math - learn more and install at <a href="http://sagem
 and try it online at <a href="http://cloud.sagemath.com" target="_blank">cloud.sagemath.com</a><br />
 <hr />
 Fundamentos de Matemáticas. Grado en Biología. Universidad de La Laguna, Spain.<br />
-&copy; Carlos González-Alcón 2017-2020 (cgalcon AT ull.edu.es) &#8212; January 8, 2020.<br />
+&copy; Carlos González-Alcón 2017-2020 (cgalcon AT ull.edu.es) &#8212; September 9, 2026.<br />
 
-<!-- © Carlos González-Alcón 2017 - this work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 License</a><br /> -->
+<!-- © Carlos González-Alcón 2017-2026 - this work is licensed under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 License</a><br /> -->
 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Licencia de Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />Este obra está bajo una <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">licencia de Creative Commons Reconocimiento-CompartirIgual 4.0 Internacional</a>.
 <font />
 <p />
